@@ -1,0 +1,22 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Gestione Corsi ITS – Full-stack web app con React, Flask e MongoDB per amministrare moduli, studenti ed esami, con dati di test generati tramite Faker"
+authors = [
+    {name = "Omisen", email = "simone.conzo@outlook.it"},
+    {name = "UsernameITS"},
+    {name = "toastxx"},
+    {name = "Ultramight"},
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pymongo (>=4.15.4,<5.0.0)",
+    "faker (>=38.2.0,<39.0.0)",
+    "flask (>=3.1.2,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
