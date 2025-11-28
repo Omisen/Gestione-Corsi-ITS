@@ -4,16 +4,16 @@ version = "0.1.0"
 description = "Gestione Corsi ITS – Full-stack web app con React, Flask e MongoDB per amministrare moduli, studenti ed esami, con dati di test generati tramite Faker"
 authors = [
     {name = "Omisen", email = "simone.conzo@outlook.it"},
-    {name = "UsernameITS"},
-    {name = "toastxx"},
-    {name = "Ultramight"},
+    {name = "UsernameITS" , email = 'fpersico@studenti.apuliadigitalmaker.it'},
+    {name = "toastxx", email = 'candyrad25@gmail.com'},
+    {name = "Ultramight", email = 'olivieri.valerio.1988@gmail.com'},
 ]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "faker (>=38.2.0,<39.0.0)",
     "flask (>=3.1.2,<4.0.0)",
-    "flask-mongoengine (>=1.0.0,<2.0.0)",
+    "flask-mongoengine-3 (>=1.1.0,<2.0.0)",
 ]
 
 
