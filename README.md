@@ -25,7 +25,7 @@ L’obiettivo è semplificare e centralizzare la gestione di corsi, studenti ed 
 - Assegnazione moduli frequentati  
 - Gestione esami:
   - data  
-  - voto  
+  - voto
   - note  
   - informazioni del modulo al momento della prova
 
