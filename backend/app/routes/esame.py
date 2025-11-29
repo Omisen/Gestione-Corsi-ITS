@@ -43,6 +43,7 @@ def get_tutti_esami():
     esami = Esame.objects()
     return jsonify(esami), 200
 
+
 @esame_bp.route('/<string:esame_id>', methods = ['GET'])
 def get_esame(esame_id):
     try:
@@ -51,6 +52,28 @@ def get_esame(esame_id):
     except DoesNotExist:
         return jsonify({"Errore": "Esame non trovato"}), 404
 
+@esame_bp.route('/filtro', methods = ['GET'])
+def filtra_esami_per_voto():
+    voto_minimo = request.args.get('voto_minimo', default=24, type=int)
+    
+    try:
+        esami = Esame.objects(voto__gte=voto_minimo)
+        
+        if not esami:
+            return jsonify({
+                            "messaggio": f"Nessun esame trovato con voto >= {voto_minimo}",
+                            "voto_minimo": voto_minimo,
+                            "risultati": []
+                            }), 200
+        
+        return jsonify({
+                        "voto_minimo": voto_minimo,
+                        "numero_risultati": esami.count(),
+                        "esami": esami
+                        }), 200
+    except Exception as e:
+        return jsonify({"Errore": str(e)}), 500
+    
 # POST
 @esame_bp.route('/', methods = ['POST'])
 def creazione_esame():

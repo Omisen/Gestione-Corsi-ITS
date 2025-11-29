@@ -35,6 +35,30 @@ def get_studente(studente_id):
         return jsonify(studente), 200
     except DoesNotExist:
         return jsonify({"Errore": "Studente non trovato"}), 404
+
+@studente_bp.route('/<string:studente_id>/media-voti', methods = ['GET'])
+def get_media_voti_studente(studente_id):
+    try:
+        studente: Studente = Studente.objects.get(id = studente_id)
+    except DoesNotExist:
+        return jsonify({"Errore": "Studente non trovato"}), 404
+    
+    media_info = studente.get_media_voti()
+    
+    if not media_info:
+        return jsonify({
+            "studente_id": str(studente.id),
+            "nome": studente.nome,
+            "cognome": studente.cognome,
+            "messaggio": "Nessun esame trovato"
+        }), 200
+    
+    return jsonify({
+        "studente_id": str(studente.id),
+        "nome": studente.nome,
+        "cognome": studente.cognome,
+        **media_info
+    }), 200
     
 # POST
 @studente_bp.route('/', methods = ['POST'])
@@ -97,11 +121,9 @@ def aggiungi_modulo_a_studente(studente_id):
     except DoesNotExist:
         return jsonify({"Errore" : "Studente o Modulo non trovato"}), 404
     
-    if modulo in studente.moduli:
+    if not studente.inscrizione_modulo(modulo):
         return jsonify({"Errore": "Modulo già presente nello Studente"}), 400
     
-    studente.moduli.append(modulo)
-    studente.save()
     return jsonify(studente), 200
 
 # DELETE
@@ -113,9 +135,7 @@ def remove_modulo_da_studente(studente_id: str, modulo_id: str) -> tuple:
     except DoesNotExist:
         return jsonify({"Errore" : "Studente o modulo non trovato"}), 404
 
-    if modulo not in studente.moduli:
+    if not studente.disinscrizione_modulo(modulo):
         return jsonify({"Errore" : "Modulo non presente nello studente"}), 400
 
-    studente.moduli.remove(modulo)
-    studente.save()
     return jsonify(studente), 200
