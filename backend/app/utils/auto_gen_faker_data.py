@@ -41,7 +41,7 @@ class Auto_Gen_Data:
     @staticmethod
     def generazione_fake_esame(studente, modulo, num=3):
         esame = []
-        for _ in range(n):
+        for _ in range(num):
             esame.append({
                 "studente": studente,
                 "modulo": modulo,

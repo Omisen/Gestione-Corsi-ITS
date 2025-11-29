@@ -1,7 +1,7 @@
 from app import db
 from models import *
 
-class Student(db.Document):
+class Studente(db.Document):
     nome = db.StringField(required=True)
     cognome = db.StringField(required=True)
     email = db.EmailField(required=True, unique=True)
