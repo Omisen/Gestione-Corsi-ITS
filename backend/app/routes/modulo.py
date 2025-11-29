@@ -33,7 +33,7 @@ def get_tutti_moduli():
 @modulo_bp.route('/<string:modulo_id>', methods = ['GET'])
 def get_modulo(modulo_id):
     try:
-        modulo = Modulo.objects(id = modulo_id)
+        modulo = Modulo.objects.get(id = modulo_id)
         return jsonify(modulo), 200
     except DoesNotExist:
         return jsonify({"Errore" : "Modulo non trovato"}), 404

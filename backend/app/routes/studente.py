@@ -31,7 +31,7 @@ def get_tutti_studenti():
 @studente_bp.route('/<string:studente_id>', methods = ['GET'])
 def get_studente(studente_id):
     try:
-        studente = Studente.objects(id = studente_id)
+        studente = Studente.objects.get(id = studente_id)
         return jsonify(studente), 200
     except DoesNotExist:
         return jsonify({"Errore": "Studente non trovato"}), 404
