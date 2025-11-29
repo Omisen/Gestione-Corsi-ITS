@@ -9,8 +9,10 @@ def create_app():
     app.config.from_object(Config)
     db.init_app(app)
     
-    app.register_blueprint('', url_prefixe = '/studenti')
-    app.register_blueprint('', url_prefixe = '/modelli')
-    app.register_blueprint('', url_prefixe = '/esami')
+    from routes import studente_bp, modulo_bp, esame_bp
+    
+    app.register_blueprint(studente_bp, url_prefixe = '/studenti')
+    app.register_blueprint(modulo_bp, url_prefixe = '/moduli')
+    app.register_blueprint(esame_bp, url_prefixe = '/esami')
     
     return app
