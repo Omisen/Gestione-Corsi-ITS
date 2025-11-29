@@ -46,6 +46,32 @@ def creazione_studente():
         studente = Studente(**data).save()
         return jsonify(studente), 201
     except ValidationError as e:
-        return jsonify({"Errore" : str(e)}), 404
+        return jsonify({"Errore" : str(e)}), 400
 
 # PUT
+@studente_bp.route('/<string:studente_id>', methods = ['PUT'])
+def update_studente(studente_id):
+    data = request.json() or {}
+    
+    try:
+        studente = Studente.objects.get(id = studente_id)
+    except DoesNotExist:
+        return jsonify({"Errore": "Studente inesistente"}), 404
+    
+    try:
+        studente.update(**data)
+        studente.reload()
+        return jsonify(studente), 200
+    except ValidationError as e:
+        return jsonify({"Errore" : str(e)}), 400
+
+# DELETE
+@studente_bp.route('/<string:studente_id>', methods = ['DELETE'])
+def elimina_studente(studente_id):
+    try:
+        studente = Studente.objects.get(id = studente_id)
+    except DoesNotExist:
+        return jsonify({"Errore" : "Studente nn Trvaato"}), 404
+    
+    studente.delete()
+    return jsonify({"Messaggio" : "Studente eliminato"}), 200
