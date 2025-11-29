@@ -53,13 +53,13 @@ def get_esame(esame_id):
 
 # POST
 @esame_bp.route('/', methods = ['POST'])
-def creazione_esamee():
+def creazione_esame():
     data = request.json or {}
     studente_id = data.get('studente_id')
     modulo_id = data.get('modulo_id')
     data_str = data.get('data') #! (ricorda) che sia sempre in formato iso YYYY-MM-DD
     
-    if not all([studente_id,modulo_id, data_str, "voto" in data]):
+    if not all([studente_id, modulo_id, data_str, data.get('voto') is not None]):
         return jsonify({"Errore":"studente_id, modulo_id, data e voto sono obbligatori"}), 400
     
     try:
@@ -69,14 +69,14 @@ def creazione_esamee():
         return jsonify({"Errore" : "Studente non trovato"}), 404
     
     try:
-        data_easme = datetime.fromisoformat(data_str)
+        data_esame = datetime.fromisoformat(data_str)
     except ValueError:
         return jsonify({"Errore" : "Formato non valido, usare (YYYY-MM-DD)"}), 400
     
     esame = Esame(
                     studente = studente,
                     modulo = modulo,
-                    data = data_easme,
+                    data = data_esame,
                     voto = data['voto'],
                     note = data.get('note', ''),
                 )
@@ -125,10 +125,10 @@ def delete_exam(esame_id: str):
     except DoesNotExist:
         return jsonify({"Errore":"Esame non trovato"}), 404
 
-    # Rimuove il riferimento dallo studente
-    if esame in esame.studente.esami:
-        esame.studente.esami.remove(esame)
-        esame.studente.save()
+    studente: Studente = esame.studente
+    if esame in studente.esami:
+        studente.esami.remove(esame)
+        studente.save()
 
     esame.delete()
 
