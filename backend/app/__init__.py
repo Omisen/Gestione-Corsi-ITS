@@ -9,4 +9,8 @@ def create_app():
     app.config.from_object(Config)
     db.init_app(app)
     
+    app.register_blueprint('', url_prefixe = '/studenti')
+    app.register_blueprint('', url_prefixe = '/modelli')
+    app.register_blueprint('', url_prefixe = '/esami')
+    
     return app
