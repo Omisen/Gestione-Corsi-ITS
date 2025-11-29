@@ -1,6 +1,7 @@
 from flask import request, Blueprint, jsonify
 from app.models import Studente
 from app.utils import Auto_Gen_Data
+from mongoengine import DoesNotExist, ValidationError
 
 studente_bp = Blueprint('studente_bp', __name__)
 
@@ -20,4 +21,31 @@ def seed_studenti():
                     "studenti_creati": len(studenti_salvati),
                     "emails": studenti_salvati
                     }), 201
+
+# GET
+@studente_bp.route('/', methods = ['GET'])
+def get_tutti_studenti():
+    studenti = Studente.objects()
+    return jsonify(studenti)
+
+@studente_bp.route('/<string:studente_id>', methods = ['GET'])
+def get_studente(studente_id):
+    try:
+        studente = Studente.objects(id = studente_id)
+        return jsonify(studente), 200
+    except DoesNotExist:
+        return jsonify({"Errore": "Studente non trovato"}), 404
     
+# POST
+@studente_bp.route('/', methods = ['POST'])
+def creazione_studente():
+    #! da notare che la or {} è una fallback nel caso la request fosse None
+    data = request.json() or {}
+    
+    try:
+        studente = Studente(**data).save()
+        return jsonify(studente), 201
+    except ValidationError as e:
+        return jsonify({"Errore" : str(e)}), 404
+
+# PUT
