@@ -1,5 +1,5 @@
 from flask import request, Blueprint, jsonify
-from app.models import Studente
+from app.models import Studente, Modulo, Esame
 from app.utils import Auto_Gen_Data
 from mongoengine import DoesNotExist, ValidationError
 
@@ -31,7 +31,7 @@ def get_tutti_studenti():
 @studente_bp.route('/<string:studente_id>', methods = ['GET'])
 def get_studente(studente_id):
     try:
-        studente = Studente.objects.get(id = studente_id)
+        studente: Studente = Studente.objects.get(id = studente_id)
         return jsonify(studente), 200
     except DoesNotExist:
         return jsonify({"Errore": "Studente non trovato"}), 404
@@ -43,7 +43,7 @@ def creazione_studente():
     data = request.json or {}
     
     try:
-        studente = Studente(**data).save()
+        studente: Studente = Studente(**data).save()
         return jsonify(studente), 201
     except ValidationError as e:
         return jsonify({"Errore" : str(e)}), 400
@@ -54,7 +54,7 @@ def update_studente(studente_id):
     data = request.json or {}
     
     try:
-        studente = Studente.objects.get(id = studente_id)
+        studente: Studente = Studente.objects.get(id = studente_id)
     except DoesNotExist:
         return jsonify({"Errore": "Studente inesistente"}), 404
     
@@ -69,15 +69,53 @@ def update_studente(studente_id):
 @studente_bp.route('/<string:studente_id>', methods = ['DELETE'])
 def elimina_studente(studente_id):
     try:
-        studente = Studente.objects.get(id = studente_id)
+        studente: Studente = Studente.objects.get(id = studente_id)
     except DoesNotExist:
-        return jsonify({"Errore" : "Studente nn Trvaato"}), 404
+        return jsonify({"Errore" : "Studente non trovato"}), 404
+    
+    # Elimina tutti gli esami associati
+    Esame.objects(studente=studente).delete()
     
     studente.delete()
     return jsonify({"Messaggio" : "Studente eliminato"}), 200
 
 
 #! POST e DELETE pe aggiungere i moduli dalla lista in Studente
+
+# POST
 @studente_bp.route('/<string:studente_id>/moduli', methods = ['POST'])
 def aggiungi_modulo_a_studente(studente_id):
-    pass
+    data = request.json or {}
+    modulo_id = data.get('modulo_id')
+    
+    if not modulo_id:
+        return jsonify({"Errore" : "modulo_id richiesto"}), 400
+    
+    try:
+        studente: Studente = Studente.objects.get(id = studente_id)
+        modulo: Modulo = Modulo.objects.get(id = modulo_id)
+    except DoesNotExist:
+        return jsonify({"Errore" : "Studente o Modulo non trovato"}), 404
+    
+    if modulo in studente.moduli:
+        return jsonify({"Errore": "Modulo già presente nello Studente"}), 400
+    
+    studente.moduli.append(modulo)
+    studente.save()
+    return jsonify(studente), 200
+
+# DELETE
+@studente_bp.delete("/<string:studente_id>/moduli/<string:modulo_id>")
+def remove_modulo_da_studente(studente_id: str, modulo_id: str) -> tuple:
+    try:
+        studente: Studente = Studente.objects.get(id = studente_id)
+        modulo: Modulo = Modulo.objects.get(id = modulo_id)
+    except DoesNotExist:
+        return jsonify({"Errore" : "Studente o modulo non trovato"}), 404
+
+    if modulo not in studente.moduli:
+        return jsonify({"Errore" : "Modulo non presente nello studente"}), 400
+
+    studente.moduli.remove(modulo)
+    studente.save()
+    return jsonify(studente), 200
