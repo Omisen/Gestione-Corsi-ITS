@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_mongoengine import MongoEngine
+from flask_cors import CORS
 from app.config import Config
 
 db = MongoEngine()
@@ -7,6 +8,7 @@ db = MongoEngine()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    CORS(app)  # Enable CORS for all routes
     db.init_app(app)
     
     from app.routes import studente_bp, modulo_bp, esame_bp

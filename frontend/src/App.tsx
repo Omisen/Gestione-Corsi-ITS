@@ -10,10 +10,9 @@ import StudentDetail from './pages/Students/StudentDetail';
 
 import ModulesList from './pages/Modules/ModulesList';
 import ModuleForm from './pages/Modules/ModuleForm';
-
-// Placeholder components for now
-const Dashboard = () => <div><h2>Dashboard</h2><p>Benvenuto nel gestionale ITS.</p></div>;
-const Exams = () => <div><h2>Esami</h2><p>Funzionalità in arrivo.</p></div>;
+import ExamsList from './pages/Exams/ExamsList';
+import ExamForm from './pages/Exams/ExamForm';
+import Dashboard from './pages/Dashboard/Dashboard';
 
 function App() {
   return (
@@ -35,8 +34,10 @@ function App() {
             <Route path="modules/new" element={<ModuleForm />} />
             <Route path="modules/:id/edit" element={<ModuleForm />} />
 
-            {/* Other Routes */}
-            <Route path="exams" element={<Exams />} />
+            {/* Exams Routes */}
+            <Route path="exams" element={<ExamsList />} />
+            <Route path="exams/new" element={<ExamForm />} />
+            <Route path="exams/:id/edit" element={<ExamForm />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
