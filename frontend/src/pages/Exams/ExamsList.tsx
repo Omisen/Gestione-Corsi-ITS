@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { examService } from '../../services/examService';
-import type { Exam } from '../../types/types';
+import { Exam } from '../../types/types';
 
 const ExamsList = () => {
     const navigate = useNavigate();
