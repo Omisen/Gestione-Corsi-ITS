@@ -27,11 +27,6 @@ L'obiettivo è semplificare e centralizzare la gestione di corsi, studenti ed es
 .\start.ps1
 ```
 
-#### Windows - Prompt dei Comandi:
-```cmd
-start.bat
-```
-
 Lo script automaticamente:
 - Verifica MongoDB
 - Avvia il backend Flask su `http://localhost:5000`
