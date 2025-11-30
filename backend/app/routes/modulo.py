@@ -1,5 +1,5 @@
 from flask import request, Blueprint, jsonify
-from app.models import Modulo
+from app.models import Modulo, Studente
 from mongoengine import DoesNotExist, ValidationError
 from app.utils import Auto_Gen_Data
 
@@ -37,6 +37,24 @@ def get_modulo(modulo_id):
         return jsonify(modulo), 200
     except DoesNotExist:
         return jsonify({"Errore" : "Modulo non trovato"}), 404
+
+#! route da utilizzare nel frontend per visualizzare tutti gli studenti inscritti per modulo di selezione in ADMIN MODE
+@modulo_bp.route('/<string:modulo_id>/studenti', methods = ['GET'])
+def get_studenti_modulo(modulo_id):
+    try:
+        modulo = Modulo.objects.get(id = modulo_id)
+    except DoesNotExist:
+        return jsonify({"Errore" : "Modulo non trovato"}), 404
+    
+    studenti = modulo.get_studenti_iscritti()
+    
+    return jsonify({
+                    "modulo_id": str(modulo.id),
+                    "modulo_nome": modulo.nome,
+                    "modulo_codice": modulo.codice,
+                    "numero_studenti": studenti.count(),
+                    "studenti": studenti
+                    }), 200
 
 # POST
 @modulo_bp.route('/', methods = ['POST'])

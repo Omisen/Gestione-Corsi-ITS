@@ -2,6 +2,7 @@ from flask import request, Blueprint, jsonify
 from app.models import Esame, Studente, Modulo
 from datetime import datetime
 from app.utils import Auto_Gen_Data
+from app.services import Operazioni
 from mongoengine import DoesNotExist, ValidationError
 
 esame_bp = Blueprint('esame_bp', __name__)
@@ -28,11 +29,11 @@ def seed_esami():
                     esami_salvati.append(str(esame.id))
         
         return jsonify({
-            "Messaggio": "Generazione esami andata a buon fine.",
-            "esami_creati": len(esami_salvati),
-            "studenti_coinvolti": len(studenti),
-            "moduli_utilizzati": min(3, len(moduli))
-        }), 201
+                        "Messaggio": "Generazione esami andata a buon fine.",
+                        "esami_creati": len(esami_salvati),
+                        "studenti_coinvolti": len(studenti),
+                        "moduli_utilizzati": min(3, len(moduli))
+                        }), 201
         
     except Exception as e:
         return jsonify({"Errore": str(e)}), 500
@@ -57,7 +58,8 @@ def filtra_esami_per_voto():
     voto_minimo = request.args.get('voto_minimo', default=24, type=int)
     
     try:
-        esami = Esame.objects(voto__gte=voto_minimo)
+        # qui giace il service per filtrare esami n.n
+        esami = Operazioni.filtra_esami_per_min_voto(voto_minimo)
         
         if not esami:
             return jsonify({

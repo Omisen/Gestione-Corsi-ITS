@@ -1,6 +1,7 @@
 from flask import request, Blueprint, jsonify
 from app.models import Studente, Modulo, Esame
 from app.utils import Auto_Gen_Data
+from app.services import InscrizioneService
 from mongoengine import DoesNotExist, ValidationError
 
 studente_bp = Blueprint('studente_bp', __name__)
@@ -47,18 +48,18 @@ def get_media_voti_studente(studente_id):
     
     if not media_info:
         return jsonify({
-            "studente_id": str(studente.id),
-            "nome": studente.nome,
-            "cognome": studente.cognome,
-            "messaggio": "Nessun esame trovato"
-        }), 200
+                        "studente_id": str(studente.id),
+                        "nome": studente.nome,
+                        "cognome": studente.cognome,
+                        "messaggio": "Nessun esame trovato"
+                        }), 200
     
     return jsonify({
-        "studente_id": str(studente.id),
-        "nome": studente.nome,
-        "cognome": studente.cognome,
-        **media_info
-    }), 200
+                    "studente_id": str(studente.id),
+                    "nome": studente.nome,
+                    "cognome": studente.cognome,
+                    **media_info
+                    }), 200
     
 # POST
 @studente_bp.route('/', methods = ['POST'])
@@ -97,7 +98,7 @@ def elimina_studente(studente_id):
     except DoesNotExist:
         return jsonify({"Errore" : "Studente non trovato"}), 404
     
-    # Elimina tutti gli esami associati
+    # qui vengono eliminati tutti gli esami associati allo studente
     Esame.objects(studente=studente).delete()
     
     studente.delete()
@@ -121,7 +122,8 @@ def aggiungi_modulo_a_studente(studente_id):
     except DoesNotExist:
         return jsonify({"Errore" : "Studente o Modulo non trovato"}), 404
     
-    if not studente.inscrizione_modulo(modulo):
+    #  controlla service per gestire l'iscrizione
+    if not InscrizioneService.inscrivi_studente_in_modulo(studente, modulo):
         return jsonify({"Errore": "Modulo già presente nello Studente"}), 400
     
     return jsonify(studente), 200
@@ -135,7 +137,8 @@ def remove_modulo_da_studente(studente_id: str, modulo_id: str) -> tuple:
     except DoesNotExist:
         return jsonify({"Errore" : "Studente o modulo non trovato"}), 404
 
-    if not studente.disinscrizione_modulo(modulo):
+    # controlla service per rimuovere l'iscrizione
+    if not InscrizioneService.rimuovi_studente_da_modulo(studente, modulo):
         return jsonify({"Errore" : "Modulo non presente nello studente"}), 400
 
     return jsonify(studente), 200
