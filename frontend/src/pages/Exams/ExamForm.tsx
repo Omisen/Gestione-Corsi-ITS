@@ -75,13 +75,25 @@ const ExamForm = () => {
             setLoading(true);
             setError(null);
 
-            // log di debug
-            console.log('Esame form data inviato con successo:', data);
+            // Fix: Extract the ObjectId string from the {$oid: 'string'} format
+            const examData = {
+                studente_id: typeof data.studente_id === 'object' && data.studente_id !== null && '$oid' in data.studente_id
+                    ? (data.studente_id as any).$oid
+                    : data.studente_id,
+                modulo_id: typeof data.modulo_id === 'object' && data.modulo_id !== null && '$oid' in data.modulo_id
+                    ? (data.modulo_id as any).$oid
+                    : data.modulo_id,
+                data: data.data,
+                voto: data.voto,
+                note: data.note
+            };
+
+            console.log('Exam form data being sent:', examData);
 
             if (isEditMode && id) {
-                await examService.updateExam(id, data);
+                await examService.updateExam(id, examData);
             } else {
-                await examService.createExam(data);
+                await examService.createExam(examData);
             }
 
             navigate('/exams');
@@ -130,7 +142,6 @@ const ExamForm = () => {
                             <Controller
                                 name="studente_id"
                                 control={control}
-                                defaultValue=""
                                 rules={{ required: 'Seleziona uno studente' }}
                                 render={({ field }) => (
                                     <Select labelId="student-label" label="Studente" {...field}>
@@ -147,7 +158,6 @@ const ExamForm = () => {
                             <Controller
                                 name="modulo_id"
                                 control={control}
-                                defaultValue=""
                                 rules={{ required: 'Seleziona un modulo' }}
                                 render={({ field }) => (
                                     <Select labelId="module-label" label="Modulo" {...field}>
