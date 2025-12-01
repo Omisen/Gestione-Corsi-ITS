@@ -19,7 +19,7 @@ import {
     Person as PersonIcon,
 } from '@mui/icons-material';
 import { studentService } from '../../services/studentService';
-import { Student, StudentStats } from '../../types/types';
+import type { Student, StudentStats } from '../../types/types';
 import StudentModules from '../../components/Students/StudentModules';
 import StudentExams from '../../components/Students/StudentExams';
 
