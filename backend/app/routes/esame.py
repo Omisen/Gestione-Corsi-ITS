@@ -7,6 +7,27 @@ from mongoengine import DoesNotExist, ValidationError
 
 esame_bp = Blueprint('esame_bp', __name__)
 
+def esame_to_dict(esame):
+    """Converte un esame in dizionario con riferimenti popolati"""
+    return {
+        '_id': str(esame.id),
+        'studente': {
+            '_id': str(esame.studente.id),
+            'nome': esame.studente.nome,
+            'cognome': esame.studente.cognome,
+            'email': esame.studente.email
+        } if esame.studente else None,
+        'modulo': {
+            '_id': str(esame.modulo.id),
+            'nome': esame.modulo.nome,
+            'codice': esame.modulo.codice,
+            'totale_ore': esame.modulo.totale_ore
+        } if esame.modulo else None,
+        'data': esame.data.isoformat() if esame.data else None,
+        'voto': esame.voto,
+        'note': esame.note or ''
+    }
+
 @esame_bp.route("/seed", methods = ["GET","POST"])
 def seed_esami():
     try:
@@ -42,14 +63,14 @@ def seed_esami():
 @esame_bp.route('/', methods = ['GET'])
 def get_tutti_esami():
     esami = Esame.objects()
-    return jsonify(esami), 200
+    return jsonify([esame_to_dict(e) for e in esami]), 200
 
 
 @esame_bp.route('/<string:esame_id>', methods = ['GET'])
 def get_esame(esame_id):
     try:
         esame = Esame.objects.get(id = esame_id)
-        return jsonify(esame), 200
+        return jsonify(esame_to_dict(esame)), 200
     except DoesNotExist:
         return jsonify({"Errore": "Esame non trovato"}), 404
 
@@ -111,10 +132,16 @@ def creazione_esame():
     except ValidationError as e:
         return jsonify({"Errore": str(e)}), 400
     
+    # Aggiungi l'esame allo studente
     studente.esami.append(esame)
+    
+    # Aggiungi il modulo allo studente se non è già presente
+    if modulo not in studente.moduli:
+        studente.moduli.append(modulo)
+    
     studente.save()
     
-    return jsonify(esame), 201
+    return jsonify(esame_to_dict(esame)), 201
 
 # PUT
 @esame_bp.route("/<string:esame_id>", methods = ['PUT'])
@@ -138,7 +165,7 @@ def update_esame(esame_id: str):
 
     try:
         esame.save()
-        return jsonify(esame), 200
+        return jsonify(esame_to_dict(esame)), 200
     except ValidationError as e:
         return jsonify({"Errore" : str(e)}), 400
 

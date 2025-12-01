@@ -6,6 +6,47 @@ from mongoengine import DoesNotExist, ValidationError
 
 studente_bp = Blueprint('studente_bp', __name__)
 
+def studente_to_dict(studente, include_details=False):
+    """Converte uno studente in dizionario con riferimenti popolati"""
+    result = {
+        '_id': str(studente.id),
+        'nome': studente.nome,
+        'cognome': studente.cognome,
+        'email': studente.email,
+        'moduli': [],
+        'esami': []
+    }
+    
+    # Popola lista moduli
+    if studente.moduli:
+        for modulo in studente.moduli:
+            if modulo:
+                result['moduli'].append({
+                    '_id': str(modulo.id),
+                    'nome': modulo.nome,
+                    'codice': modulo.codice,
+                    'totale_ore': modulo.totale_ore
+                })
+    
+    # Popola lista esami (solo se richiesto per evitare sovraccarico)
+    if include_details and studente.esami:
+        for esame in studente.esami:
+            if esame:
+                result['esami'].append({
+                    '_id': str(esame.id),
+                    'data': esame.data.isoformat() if esame.data else None,
+                    'voto': esame.voto,
+                    'modulo': {
+                        '_id': str(esame.modulo.id),
+                        'nome': esame.modulo.nome
+                    } if esame.modulo else None
+                })
+    else:
+        # Per la lista, restituisci solo gli ID per performance
+        result['esami'] = [str(e.id) for e in studente.esami if e]
+    
+    return result
+
 @studente_bp.route("/seed", methods = ["GET","POST"])
 def seed_studenti():
     #? per il test ricordiamoci di controllare il DB per certezza
@@ -27,13 +68,13 @@ def seed_studenti():
 @studente_bp.route('/', methods = ['GET'])
 def get_tutti_studenti():
     studenti = Studente.objects()
-    return jsonify(studenti), 200
+    return jsonify([studente_to_dict(s) for s in studenti]), 200
 
 @studente_bp.route('/<string:studente_id>', methods = ['GET'])
 def get_studente(studente_id):
     try:
         studente: Studente = Studente.objects.get(id = studente_id)
-        return jsonify(studente), 200
+        return jsonify(studente_to_dict(studente, include_details=True)), 200
     except DoesNotExist:
         return jsonify({"Errore": "Studente non trovato"}), 404
 
@@ -69,7 +110,7 @@ def creazione_studente():
     
     try:
         studente: Studente = Studente(**data).save()
-        return jsonify(studente), 201
+        return jsonify(studente_to_dict(studente)), 201
     except ValidationError as e:
         return jsonify({"Errore" : str(e)}), 400
 
@@ -86,7 +127,7 @@ def update_studente(studente_id):
     try:
         studente.update(**data)
         studente.reload()
-        return jsonify(studente), 200
+        return jsonify(studente_to_dict(studente)), 200
     except ValidationError as e:
         return jsonify({"Errore" : str(e)}), 400
 
@@ -126,7 +167,7 @@ def aggiungi_modulo_a_studente(studente_id):
     if not InscrizioneService.inscrivi_studente_in_modulo(studente, modulo):
         return jsonify({"Errore": "Modulo già presente nello Studente"}), 400
     
-    return jsonify(studente), 200
+    return jsonify(studente_to_dict(studente)), 200
 
 # DELETE
 @studente_bp.delete("/<string:studente_id>/moduli/<string:modulo_id>")
@@ -141,4 +182,4 @@ def remove_modulo_da_studente(studente_id: str, modulo_id: str) -> tuple:
     if not InscrizioneService.rimuovi_studente_da_modulo(studente, modulo):
         return jsonify({"Errore" : "Modulo non presente nello studente"}), 400
 
-    return jsonify(studente), 200
+    return jsonify(studente_to_dict(studente)), 200
