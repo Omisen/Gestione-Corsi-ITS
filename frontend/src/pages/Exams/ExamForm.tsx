@@ -75,6 +75,9 @@ const ExamForm = () => {
             setLoading(true);
             setError(null);
 
+            // log di debug
+            console.log('Esame form data inviato con successo:', data);
+
             if (isEditMode && id) {
                 await examService.updateExam(id, data);
             } else {
@@ -127,6 +130,7 @@ const ExamForm = () => {
                             <Controller
                                 name="studente_id"
                                 control={control}
+                                defaultValue=""
                                 rules={{ required: 'Seleziona uno studente' }}
                                 render={({ field }) => (
                                     <Select labelId="student-label" label="Studente" {...field}>
@@ -143,6 +147,7 @@ const ExamForm = () => {
                             <Controller
                                 name="modulo_id"
                                 control={control}
+                                defaultValue=""
                                 rules={{ required: 'Seleziona un modulo' }}
                                 render={({ field }) => (
                                     <Select labelId="module-label" label="Modulo" {...field}>
