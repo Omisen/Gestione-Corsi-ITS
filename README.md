@@ -1,3 +1,5 @@
+<img width="1536" height="317" alt="ChatGPT Image 3 dic 2025, 00_30_17" src="https://github.com/user-attachments/assets/e8fb81bc-76eb-41b5-b023-8929887a10ad" />
+
 # 📘 Gestione Corsi ITS
 
 ## 📝 Descrizione del Progetto
