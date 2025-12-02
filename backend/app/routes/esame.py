@@ -1,38 +1,74 @@
 from flask import request, Blueprint, jsonify
-from app.models import Esame, Studente, Modulo
 from datetime import datetime
-from app.utils import Auto_Gen_Data
+from pydantic import ValidationError
+from app.schemas import EsameCreate, EsameUpdate
+from app.repositories import esame_repository, studente_repository, modulo_repository
 from app.services import Operazioni
-from mongoengine import DoesNotExist, ValidationError
+from app.utils import Auto_Gen_Data
+from app.utils.objectid_utils import str_to_objectid
 
 esame_bp = Blueprint('esame_bp', __name__)
 
-def esame_to_dict(esame):
-    """Converte un esame in dizionario con riferimenti popolati"""
-    return {
-        '_id': str(esame.id),
-        'studente': {
-            '_id': str(esame.studente.id),
-            'nome': esame.studente.nome,
-            'cognome': esame.studente.cognome,
-            'email': esame.studente.email
-        } if esame.studente else None,
-        'modulo': {
-            '_id': str(esame.modulo.id),
-            'nome': esame.modulo.nome,
-            'codice': esame.modulo.codice,
-            'totale_ore': esame.modulo.totale_ore
-        } if esame.modulo else None,
-        'data': esame.data.isoformat() if esame.data else None,
-        'voto': esame.voto,
-        'note': esame.note or ''
-    }
 
-@esame_bp.route("/seed", methods = ["GET","POST"])
+def build_esame_response(esame_doc):
+   
+    if not esame_doc:
+        return None
+    
+    response = {
+                    '_id': str(esame_doc['_id']),
+                    'data': esame_doc['data'].isoformat() if isinstance(esame_doc['data'], datetime) else esame_doc['data'],
+                    'voto': esame_doc['voto'],
+                    'note': esame_doc.get('note', ''),
+                    'studente': None,
+                    'modulo': None
+                }
+    
+    if 'studente_populated' in esame_doc and esame_doc['studente_populated']:
+        s = esame_doc['studente_populated']
+        response['studente'] = {
+                                    '_id': str(s['_id']),
+                                    'nome': s['nome'],
+                                    'cognome': s['cognome'],
+                                    'email': s['email']
+                                }
+    elif 'studente' in esame_doc:
+        studente = studente_repository.find_by_id(str(esame_doc['studente']))
+        if studente:
+            response['studente'] = {
+                                        '_id': str(studente['_id']),
+                                        'nome': studente['nome'],
+                                        'cognome': studente['cognome'],
+                                        'email': studente['email']
+                                    }
+    
+    
+    if 'modulo_populated' in esame_doc and esame_doc['modulo_populated']:
+        m = esame_doc['modulo_populated']
+        response['modulo'] = {
+                                '_id': str(m['_id']),
+                                'nome': m['nome'],
+                                'codice': m['codice'],
+                                'totale_ore': m['totale_ore']
+                            }
+    elif 'modulo' in esame_doc:
+        modulo = modulo_repository.find_by_id(str(esame_doc['modulo']))
+        if modulo:
+            response['modulo'] = {
+                                    '_id': str(modulo['_id']),
+                                    'nome': modulo['nome'],
+                                    'codice': modulo['codice'],
+                                    'totale_ore': modulo['totale_ore']
+                                }
+    
+    return response
+
+# Generazione di esami fake per il testing
+@esame_bp.route("/seed", methods=["GET", "POST"])
 def seed_esami():
     try:
-        studenti = list(Studente.objects())
-        moduli = list(Modulo.objects())
+        studenti = studente_repository.find_all()
+        moduli = modulo_repository.find_all()
         
         if not studenti:
             return jsonify({"Errore": "Nessun studente trovato. Esegui prima /studenti/seed"}), 400
@@ -42,146 +78,151 @@ def seed_esami():
         
         esami_salvati = []
         for studente in studenti:
+            studente_id = str(studente['_id'])
             for modulo in moduli[:3]:
-                fake_esami = Auto_Gen_Data.generazione_fake_esame(studente.id, modulo.id, 1)
+                modulo_id = str(modulo['_id'])
+                fake_esami = Auto_Gen_Data.generazione_fake_esame(studente_id, modulo_id, 1)
+                
                 for esame_data in fake_esami:
-                    esame = Esame(**esame_data)
-                    esame.save()
-                    esami_salvati.append(str(esame.id))
+                    esame_data['studente'] = str_to_objectid(esame_data['studente'])
+                    esame_data['modulo'] = str_to_objectid(esame_data['modulo'])
+                    
+                    result = esame_repository.insert_one(esame_data)
+                    esame_id = str(result.inserted_id)
+                    esami_salvati.append(esame_id)
+                    
+                    studente_repository.add_esame(studente_id, esame_id)
+                    
+                    studente_repository.add_modulo(studente_id, modulo_id)
         
         return jsonify({
-                        "Messaggio": "Generazione esami andata a buon fine.",
-                        "esami_creati": len(esami_salvati),
-                        "studenti_coinvolti": len(studenti),
-                        "moduli_utilizzati": min(3, len(moduli))
+                            "Messaggio": "Generazione esami andata a buon fine.",
+                            "esami_creati": len(esami_salvati),
+                            "studenti_coinvolti": len(studenti),
+                            "moduli_utilizzati": min(3, len(moduli))
                         }), 201
         
     except Exception as e:
         return jsonify({"Errore": str(e)}), 500
 
-# GET
-@esame_bp.route('/', methods = ['GET'])
+# GET MTHODS
+@esame_bp.route('/', methods=['GET'])
 def get_tutti_esami():
-    esami = Esame.objects()
-    return jsonify([esame_to_dict(e) for e in esami]), 200
+    esami = esame_repository.get_all_with_populated_refs()
+    return jsonify([build_esame_response(e) for e in esami]), 200
 
 
-@esame_bp.route('/<string:esame_id>', methods = ['GET'])
+@esame_bp.route('/<string:esame_id>', methods=['GET'])
 def get_esame(esame_id):
-    try:
-        esame = Esame.objects.get(id = esame_id)
-        return jsonify(esame_to_dict(esame)), 200
-    except DoesNotExist:
+    esame = esame_repository.get_with_populated_refs(esame_id)
+    
+    if not esame:
         return jsonify({"Errore": "Esame non trovato"}), 404
+    
+    return jsonify(build_esame_response(esame)), 200
 
-@esame_bp.route('/filtro', methods = ['GET'])
+
+@esame_bp.route('/filtro', methods=['GET'])
 def filtra_esami_per_voto():
     voto_minimo = request.args.get('voto_minimo', default=24, type=int)
     
     try:
-        # qui giace il service per filtrare esami n.n
+        # utilizza il service per filtrare gli esami per voto
         esami = Operazioni.filtra_esami_per_min_voto(voto_minimo)
         
         if not esami:
             return jsonify({
-                            "messaggio": f"Nessun esame trovato con voto >= {voto_minimo}",
-                            "voto_minimo": voto_minimo,
-                            "risultati": []
+                                "messaggio": f"Nessun esame trovato con voto >= {voto_minimo}",
+                                "voto_minimo": voto_minimo,
+                                "risultati": []
                             }), 200
         
+        esami_response = []
+        for esame in esami:
+            esami_response.append(build_esame_response(esame))
+        
         return jsonify({
-                        "voto_minimo": voto_minimo,
-                        "numero_risultati": esami.count(),
-                        "esami": esami
+                            "voto_minimo": voto_minimo,
+                            "numero_risultati": len(esami),
+                            "esami": esami_response
                         }), 200
+        
     except Exception as e:
         return jsonify({"Errore": str(e)}), 500
-    
-# POST
-@esame_bp.route('/', methods = ['POST'])
+
+# POST METHOD
+@esame_bp.route('/', methods=['POST'])
 def creazione_esame():
     data = request.json or {}
-    studente_id = data.get('studente_id')
-    modulo_id = data.get('modulo_id')
-    data_str = data.get('data') #! (ricorda) che sia sempre in formato iso YYYY-MM-DD
-    
-    if not all([studente_id, modulo_id, data_str, data.get('voto') is not None]):
-        return jsonify({"Errore":"studente_id, modulo_id, data e voto sono obbligatori"}), 400
     
     try:
-        studente: Studente = Studente.objects.get(id = studente_id)
-        modulo: Modulo = Modulo.objects.get(id = modulo_id)
-    except DoesNotExist:
-        return jsonify({"Errore" : "Studente non trovato"}), 404
-    
-    try:
-        data_esame = datetime.fromisoformat(data_str)
-    except ValueError:
-        return jsonify({"Errore" : "Formato non valido, usare (YYYY-MM-DD)"}), 400
-    
-    esame = Esame(
-                    studente = studente,
-                    modulo = modulo,
-                    data = data_esame,
-                    voto = data['voto'],
-                    note = data.get('note', ''),
-                )
-    
-    try:
-        esame.save()
+        esame_create = EsameCreate(**data)
+        
+        studente = studente_repository.find_by_id(esame_create.studente_id)
+        if not studente:
+            return jsonify({"Errore": "Studente non trovato"}), 404
+        
+        modulo = modulo_repository.find_by_id(esame_create.modulo_id)
+        if not modulo:
+            return jsonify({"Errore": "Modulo non trovato"}), 404
+        
+        esame_data = {
+                        'studente': str_to_objectid(esame_create.studente_id),
+                        'modulo': str_to_objectid(esame_create.modulo_id),
+                        'data': esame_create.data,
+                        'voto': esame_create.voto,
+                        'note': esame_create.note or ''
+                    }
+        
+        result = esame_repository.insert_one(esame_data)
+        esame_id = str(result.inserted_id)
+        
+        studente_repository.add_esame(esame_create.studente_id, esame_id)
+        
+        studente_repository.add_modulo(esame_create.studente_id, esame_create.modulo_id)
+        
+        esame = esame_repository.get_with_populated_refs(esame_id)
+        
+        return jsonify(build_esame_response(esame)), 201
+        
     except ValidationError as e:
         return jsonify({"Errore": str(e)}), 400
-    
-    # Aggiungi l'esame allo studente
-    studente.esami.append(esame)
-    
-    # Aggiungi il modulo allo studente se non è già presente
-    if modulo not in studente.moduli:
-        studente.moduli.append(modulo)
-    
-    studente.save()
-    
-    return jsonify(esame_to_dict(esame)), 201
 
-# PUT
-@esame_bp.route("/<string:esame_id>", methods = ['PUT'])
+
+# PUT METHOD
+@esame_bp.route("/<string:esame_id>", methods=['PUT'])
 def update_esame(esame_id: str):
     data = request.json or {}
-
+    
+    esame = esame_repository.find_by_id(esame_id)
+    if not esame:
+        return jsonify({"Errore": "Esame non trovato"}), 404
+    
     try:
-        esame: Esame = Esame.objects.get(id = esame_id)
-    except DoesNotExist:
-        return jsonify({"Errore" : "Esame non trovato"}), 404
-
-    if "voto" in data:
-        esame.voto = data["voto"]
-    if "note" in data:
-        esame.note = data["note"]
-    if "data" in data:
-        try:
-            esame.data = datetime.fromisoformat(data["data"])
-        except ValueError:
-            return jsonify({"Errore" : "Formato data non valido, usare YYYY-MM-DD"}), 400
-
-    try:
-        esame.save()
-        return jsonify(esame_to_dict(esame)), 200
+        esame_update = EsameUpdate(**data)
+        
+        update_data = esame_update.model_dump(exclude_none=True)
+        if update_data:
+            esame_repository.update_one(esame_id, update_data)
+        
+        esame = esame_repository.get_with_populated_refs(esame_id)
+        
+        return jsonify(build_esame_response(esame)), 200
+        
     except ValidationError as e:
-        return jsonify({"Errore" : str(e)}), 400
+        return jsonify({"Errore": str(e)}), 400
 
-# DELETE
+# DELETE METHOD
 @esame_bp.delete("/<string:esame_id>")
 def delete_exam(esame_id: str):
-    try:
-        esame: Esame = Esame.objects.get(id=esame_id)
-    except DoesNotExist:
-        return jsonify({"Errore":"Esame non trovato"}), 404
-
-    studente: Studente = esame.studente
-    if esame in studente.esami:
-        studente.esami.remove(esame)
-        studente.save()
-
-    esame.delete()
-
+    esame = esame_repository.find_by_id(esame_id)
+    
+    if not esame:
+        return jsonify({"Errore": "Esame non trovato"}), 404
+    
+    studente_id = str(esame['studente'])
+    studente_repository.remove_esame(studente_id, esame_id)
+    
+    esame_repository.delete_one(esame_id)
+    
     return jsonify({"Messaggio": "Esame eliminato"}), 200

@@ -1,50 +1,106 @@
-Backend – Gestione Corsi ITS
+# Backend – Gestione Corsi ITS
 
-Descrizione
-- Backend ristrutturato passando da una struttura monolitica a un'applicazione Flask modulare.
-- Introdotto il pattern dell'application factory (`create_app`) in `app/__init__.py`.
-- Configurazione, modelli e route separati in pacchetti dedicati (`app/config.py`, `app/models/`, `app/routes/`).
-- Aggiornati i requisiti nella `requirements.txt` e sostituito Poetry con pip + venv.
-- Rimossi i vecchi modelli e i file di servizio legacy.
+## Descrizione
+- Backend REST API costruito con Flask e PyMongo.
+- Architettura modulare con **Application Factory Pattern** per configurazioni multiple.
+- Validazione dati con **Pydantic v2** per type safety e serializzazione automatica.
+- Database **MongoDB** con driver nativo PyMongo per performance ottimali.
+- CORS abilitato per comunicazione cross-origin con frontend React.
 
-Struttura
-- `run.py`: entrypoint per avviare l'app Flask.
-- `app/__init__.py`: application factory e registrazione blueprint.
-- `app/config.py`: configurazioni (dev/prod, variabili d'ambiente).
-- `app/models/`: modelli dell'applicazione (es. `studente.py`, `modulo.py`, `esame.py`).
-- `app/routes/`: route e blueprint (es. `studente.py`, `modulo.py`, `esame.py`).
+## Architettura
 
-Prerequisiti
-- Python 3.10+ consigliato.
-- **Ambiente virtuale (venv) attivo.**
+### Stack Tecnologico
+- **Framework**: Flask 3.1.2
+- **Database**: MongoDB (PyMongo 4.15.4)
+- **Validazione**: Pydantic 2.x + Pydantic Settings
+- **CORS**: Flask-Cors 5.0.0
+- **Testing**: Faker per dati di esempio
 
-Setup dipendenze (pip + venv)
-Usare pip e `requirements.txt` al posto di Poetry.
+### Struttura Directory
+```
+backend/
+├── run.py                    # Entrypoint applicazione
+├── requirements.txt          # Dipendenze Python
+├── app/
+│   ├── __init__.py          # Application factory
+│   ├── config.py            # Configurazioni (dev/prod)
+│   ├── database.py          # Connessione MongoDB
+│   ├── schemas/             # Pydantic models per validazione
+│   │   ├── studente_schema.py
+│   │   ├── modulo_schema.py
+│   │   └── esame_schema.py
+│   ├── repositories/        # Data access layer (MongoDB queries)
+│   │   ├── studente_repository.py
+│   │   ├── modulo_repository.py
+│   │   └── esame_repository.py
+│   ├── routes/              # Blueprints REST API
+│   │   ├── studente.py
+│   │   ├── modulo.py
+│   │   └── esame.py
+│   ├── services/            # Business logic
+│   │   ├── inscrizioniService.py
+│   │   └── operazioni.py
+│   └── utils/               # Helper functions
+│       ├── serializers.py
+│       ├── objectid_utils.py
+│       └── auto_gen_faker_data.py
+```
 
+### Pattern Architetturali
+- **Repository Pattern**: Separazione logica database da business logic
+- **Pydantic Schemas**: Validazione input/output automatica con type hints
+- **Blueprints**: Organizzazione routes per risorsa (studenti, moduli, esami)
+- **Serialization Helpers**: Conversione automatica ObjectId ↔ string
+
+## Prerequisiti
+- **Python 3.10+** (testato con Python 3.13)
+- **MongoDB** in esecuzione su `localhost:27017`
+- **Virtual Environment** (venv) per isolamento dipendenze
+
+## Setup e Installazione
+
+### 1. Creazione ambiente virtuale
 ```powershell
-# Da eseguire nella cartella backend
+# Dalla directory backend/
 python -m venv .venv
-& .\.venv\Scripts\Activate.ps1
+& .\.venv\Scripts\Activate.ps1  # Windows PowerShell
+# oppure: source .venv/bin/activate  # Linux/Mac
+```
+
+### 2. Installazione dipendenze
+```powershell
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Avvio dell'app
+### 3. Configurazione ambiente
+Crea un file `.env` nella directory `backend/` (opzionale):
+```env
+MONGO_URI=mongodb://localhost:27017/
+DATABASE_NAME=gestore-corsi
+FLASK_ENV=development
+SECRET_KEY=your-secret-key-here
+```
+
+### 4. Avvio del server
 ```powershell
-# Assicurati che il venv sia attivo
-& .\.venv\Scripts\Activate.ps1
+# Assicurati che MongoDB sia in esecuzione
 python run.py
 ```
 
-Configurazione
-- Imposta eventuali variabili d'ambiente (es. database, secret keys) prima dell'avvio.
-- Il file `app/config.py` gestisce i profili e la lettura delle variabili.
+Il server sarà disponibile su **http://127.0.0.1:5000**
 
-Note di migrazione
-- Poetry è stato rimosso. Per installare le dipendenze usare:
-	- `pip install -r requirements.txt`
-- I servizi legacy sono stati eliminati; la logica è ora organizzata tra modelli e route con blueprint.
-- L'application factory consente testabilità e configurazioni multiple.
+## Configurazione Database
+
+### MongoDB Setup
+- **Host**: localhost
+- **Porta**: 27017
+- **Database**: gestore-corsi
+- **Collections**: studenti, moduli, esami
+
+La connessione viene gestita in `app/database.py` con pooling automatico.
+
+---
 
 ## API Routes
 
@@ -133,48 +189,126 @@ Note di migrazione
 
 ## Note Tecniche
 
-### Pattern Utilizzati
-- **Application Factory**: `create_app()` per configurazioni multiple
-- **Blueprints**: routes organizzate per risorsa (studenti, moduli, esami)
-- **Fat Models, Thin Controllers**: logica di business nei modelli
-  - `Studente.enroll_modulo(modulo)` - Gestisce iscrizione
-  - `Studente.unenroll_modulo(modulo)` - Gestisce cancellazione
-  - `Studente.get_media_voti()` - Calcola statistiche voti
+### Validazione con Pydantic
+Tutti gli input API sono validati automaticamente tramite Pydantic schemas:
+- **Type Safety**: Controllo tipi a runtime con type hints Python
+- **Serializzazione Automatica**: Conversione JSON ↔ Python objects
+- **Validatori Custom**: Email validation, ObjectId conversion, date parsing
+- **Error Messages**: Messaggi di errore dettagliati per validazioni fallite
 
-### Gestione Riferimenti Circolari
-- Uso di `mongoengine.ReferenceField` con stringhe lazy per evitare dipendenze circolari
-- `me.ListField(me.ReferenceField('Modulo'))` per liste di riferimenti
+Esempi schemas in `app/schemas/`:
+```python
+# StudenteCreate schema
+class StudenteCreate(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=100)
+    cognome: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+```
 
-### Database
-- **MongoDB** su `localhost:27017`
-- Database: `gestore-corsi`
-- Configurazione in `app/config.py`
+### Repository Pattern
+Separazione tra logica di accesso ai dati e business logic:
+- **Repositories** (`app/repositories/`): Query MongoDB pure
+- **Services** (`app/services/`): Logica di business e orchestrazione
+- **Routes** (`app/routes/`): Handling HTTP requests/responses
+
+### Gestione Riferimenti MongoDB
+- **Population Manuale**: I riferimenti ObjectId vengono popolati con documenti completi
+- **Serializzazione Custom**: Helper functions in `app/routes/` per costruire response con dati nidificati
+- Esempio: `build_studente_response()` popola automaticamente `moduli[]` con oggetti completi
+
+### CORS Configuration
+Flask-Cors abilitato per permettere richieste da frontend React:
+```python
+CORS(app)  # Permette tutte le origins in development
+```
 
 ---
 
 ## Testing Rapido
 
 ### 1. Popola il database
-```bash
+```powershell
 # Genera studenti
-curl -X POST http://localhost:5000/studenti/seed
+Invoke-RestMethod -Uri http://localhost:5000/studenti/seed -Method Post
 
 # Genera moduli
-curl -X POST http://localhost:5000/moduli/seed
+Invoke-RestMethod -Uri http://localhost:5000/moduli/seed -Method Post
 
 # Genera esami (richiede studenti e moduli)
-curl -X POST http://localhost:5000/esami/seed
+Invoke-RestMethod -Uri http://localhost:5000/esami/seed -Method Post
 ```
 
 ### 2. Test funzionalità
-```bash
-# Media voti di uno studente
-curl http://localhost:5000/studenti/<id>/media-voti
+```powershell
+# Media voti di uno studente (sostituisci <id> con ID reale)
+Invoke-RestMethod -Uri "http://localhost:5000/studenti/<id>/media-voti"
 
 # Filtra esami con voto >= 24
-curl http://localhost:5000/esami/filtro
+Invoke-RestMethod -Uri "http://localhost:5000/esami/filtro"
 
 # Filtra esami con voto >= 28
-curl http://localhost:5000/esami/filtro?voto_minimo=28
+Invoke-RestMethod -Uri "http://localhost:5000/esami/filtro?voto_minimo=28"
+
+# Lista tutti gli studenti con moduli popolati
+Invoke-RestMethod -Uri "http://localhost:5000/studenti/"
 ```
+
+---
+
+## Dipendenze Principali
+
+```
+Flask==3.1.2              # Web framework
+pymongo==4.15.4           # MongoDB driver nativo
+pydantic>=2.0.0           # Validazione e serializzazione dati
+pydantic-settings>=2.0.0  # Gestione configurazioni
+Flask-Cors==5.0.0         # CORS per frontend
+Faker==38.2.0             # Generazione dati fake per testing
+email-validator>=2.0.0    # Validazione email
+python-dateutil==2.9.0    # Parsing date avanzato
+```
+
+## Troubleshooting
+
+### MongoDB connection error
+```
+Errore: pymongo.errors.ServerSelectionTimeoutError
+```
+**Soluzione**: Verifica che MongoDB sia in esecuzione:
+```powershell
+# Windows
+net start MongoDB
+
+# oppure avvia manualmente mongod
+mongod --dbpath <path-to-data-folder>
+```
+
+### Pydantic validation errors
+```
+Errore: Field required / Validation error
+```
+**Soluzione**: Verifica che tutti i campi obbligatori siano presenti nella richiesta POST/PUT. Consulta gli esempi JSON nella sezione API Routes.
+
+### Port 5000 already in use
+```
+Errore: OSError: [WinError 10048]
+```
+**Soluzione**: Cambia porta in `run.py` o termina il processo che occupa la porta 5000.
+
+---
+
+## Changelog
+
+### v2.0.0 - Migrazione PyMongo + Pydantic
+- ✅ Migrazione completa da MongoEngine a PyMongo nativo
+- ✅ Implementazione Pydantic v2 per validazione
+- ✅ Repository pattern per separazione concerns
+- ✅ Serializzazione automatica con population manuale riferimenti
+- ✅ Rimozione dipendenze MongoEngine e models legacy
+- ✅ CORS configuration per frontend React
+
+### v1.0.0 - Iniziale
+- Application factory pattern
+- Blueprint per organizzazione routes
+- MongoEngine ODM (deprecato)
 
