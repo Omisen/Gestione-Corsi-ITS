@@ -84,36 +84,38 @@ const StudentsList = () => {
     }
 
     return (
-        <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-                    Studenti
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 4 }}>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'primary.main', fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
+                    Gestione Studenti
                 </Typography>
                 <Button
                     variant="contained"
+                    size="large"
                     startIcon={<AddIcon />}
                     onClick={() => navigate('/students/new')}
+                    sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 }, width: { xs: '100%', sm: 'auto' } }}
                 >
                     Nuovo Studente
                 </Button>
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 3 }}>
+                <Alert severity="error" sx={{ mb: 3, boxShadow: 1 }}>
                     {error}
                 </Alert>
             )}
 
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="students table">
-                    <TableHead sx={{ bgcolor: 'background.default' }}>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Cognome</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Moduli</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Esami</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>Azioni</TableCell>
+            <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, overflowX: 'auto' }}>
+                <Table sx={{ minWidth: { xs: 300, sm: 650 } }} aria-label="students table">
+                    <TableHead>
+                        <TableRow sx={{ bgcolor: 'primary.main' }}>
+                            <TableCell sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Nome</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Cognome</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem', display: { xs: 'none', sm: 'table-cell' } }}>Email</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem', display: { xs: 'none', md: 'table-cell' } }}>Moduli</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem', display: { xs: 'none', md: 'table-cell' } }}>Esami</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Azioni</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -133,25 +135,27 @@ const StudentsList = () => {
                                 >
                                     <TableCell>{student.nome}</TableCell>
                                     <TableCell>{student.cognome}</TableCell>
-                                    <TableCell>{student.email}</TableCell>
-                                    <TableCell align="center">{student.moduli?.length || 0}</TableCell>
-                                    <TableCell align="center">{student.esami?.length || 0}</TableCell>
+                                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{student.email}</TableCell>
+                                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>{student.moduli?.length || 0}</TableCell>
+                                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>{student.esami?.length || 0}</TableCell>
                                     <TableCell align="right">
-                                        <Tooltip title="Dettagli">
-                                            <IconButton color="primary" onClick={() => navigate(`/students/${student._id}`)}>
-                                                <ViewIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Modifica">
-                                            <IconButton color="info" onClick={() => navigate(`/students/${student._id}/edit`)}>
-                                                <EditIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Elimina">
-                                            <IconButton color="error" onClick={() => handleDeleteClick(student._id)}>
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: { xs: 0.5, sm: 1 } }}>
+                                            <Tooltip title="Dettagli">
+                                                <IconButton size="small" color="primary" onClick={() => navigate(`/students/${student._id}`)}>
+                                                    <ViewIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Modifica">
+                                                <IconButton size="small" color="info" onClick={() => navigate(`/students/${student._id}/edit`)}>
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Elimina">
+                                                <IconButton size="small" color="error" onClick={() => handleDeleteClick(student._id)}>
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))

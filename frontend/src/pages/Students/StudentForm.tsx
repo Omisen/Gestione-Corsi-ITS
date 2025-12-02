@@ -79,27 +79,28 @@ const StudentForm = () => {
     }
 
     return (
-        <Box maxWidth="md" sx={{ mx: 'auto' }}>
-            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box maxWidth="md" sx={{ mx: 'auto', p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
                 <Button
                     startIcon={<ArrowBackIcon />}
                     onClick={() => navigate('/students')}
                     color="inherit"
+                    size="small"
                 >
                     Indietro
                 </Button>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'primary.main', fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                     {isEditMode ? 'Modifica Studente' : 'Nuovo Studente'}
                 </Typography>
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 3 }}>
+                <Alert severity="error" sx={{ mb: 3, boxShadow: 1 }}>
                     {error}
                 </Alert>
             )}
 
-            <Paper sx={{ p: 4 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, boxShadow: 3, borderRadius: 2 }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Stack spacing={3}>
                         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -137,11 +138,12 @@ const StudentForm = () => {
                             helperText={errors.email?.message}
                         />
 
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'flex-end', gap: 2, mt: 2 }}>
                             <Button
                                 variant="outlined"
                                 onClick={() => navigate('/students')}
                                 disabled={loading}
+                                fullWidth={{ xs: true, sm: false }}
                             >
                                 Annulla
                             </Button>
@@ -150,6 +152,7 @@ const StudentForm = () => {
                                 variant="contained"
                                 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                                 disabled={loading}
+                                fullWidth={{ xs: true, sm: false }}
                             >
                                 {isEditMode ? 'Aggiorna' : 'Salva'}
                             </Button>

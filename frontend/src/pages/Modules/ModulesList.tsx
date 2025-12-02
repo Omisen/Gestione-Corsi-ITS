@@ -83,34 +83,36 @@ const ModulesList = () => {
     }
 
     return (
-        <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-                    Moduli
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 4 }}>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'primary.main', fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
+                    Gestione Moduli
                 </Typography>
                 <Button
                     variant="contained"
+                    size="large"
                     startIcon={<AddIcon />}
                     onClick={() => navigate('/modules/new')}
+                    sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 }, width: { xs: '100%', sm: 'auto' } }}
                 >
                     Nuovo Modulo
                 </Button>
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 3 }}>
+                <Alert severity="error" sx={{ mb: 3, boxShadow: 1 }}>
                     {error}
                 </Alert>
             )}
 
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="modules table">
-                    <TableHead sx={{ bgcolor: 'background.default' }}>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Codice</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ore Totali</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>Azioni</TableCell>
+            <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, overflowX: 'auto' }}>
+                <Table sx={{ minWidth: { xs: 300, sm: 650 } }} aria-label="modules table">
+                    <TableHead>
+                        <TableRow sx={{ bgcolor: 'primary.main' }}>
+                            <TableCell sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Nome</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Codice</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem', display: { xs: 'none', sm: 'table-cell' } }}>Ore Totali</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>Azioni</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -130,18 +132,20 @@ const ModulesList = () => {
                                 >
                                     <TableCell>{module.nome}</TableCell>
                                     <TableCell>{module.codice}</TableCell>
-                                    <TableCell align="center">{module.totale_ore}</TableCell>
+                                    <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{module.totale_ore}</TableCell>
                                     <TableCell align="right">
-                                        <Tooltip title="Modifica">
-                                            <IconButton color="info" onClick={() => navigate(`/modules/${module._id}/edit`)}>
-                                                <EditIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Elimina">
-                                            <IconButton color="error" onClick={() => handleDeleteClick(module._id)}>
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: { xs: 0.5, sm: 1 } }}>
+                                            <Tooltip title="Modifica">
+                                                <IconButton size="small" color="info" onClick={() => navigate(`/modules/${module._id}/edit`)}>
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Elimina">
+                                                <IconButton size="small" color="error" onClick={() => handleDeleteClick(module._id)}>
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))

@@ -86,47 +86,49 @@ const Dashboard = () => {
     ];
 
     return (
-        <Box>
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Dashboard
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                <Typography variant="body1" color="text.secondary">
                     Benvenuto nel gestionale ITS. Qui trovi una panoramica rapida del sistema.
                 </Typography>
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 3 }}>
+                <Alert severity="error" sx={{ mb: 3, boxShadow: 1 }}>
                     {error}
                 </Alert>
             )}
 
-            <Grid container spacing={3}>
+            <Grid container spacing={4}>
                 {cards.map((card) => (
                     <Grid item xs={12} sm={6} md={4} key={card.title}>
                         <Card
                             sx={{
                                 cursor: 'pointer',
                                 transition: 'all 0.3s',
+                                boxShadow: 3,
+                                borderRadius: 2,
                                 '&:hover': {
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: 6,
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 8,
                                 },
                             }}
                             onClick={() => navigate(card.path)}
                         >
-                            <CardContent>
+                            <CardContent sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
-                                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                                        <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                                             {card.title}
                                         </Typography>
-                                        <Typography variant="h3" sx={{ fontWeight: 'bold', color: card.color }}>
+                                        <Typography variant="h3" sx={{ fontWeight: 700, color: card.color }}>
                                             {card.count}
                                         </Typography>
                                     </Box>
-                                    <Box sx={{ color: card.color, opacity: 0.7 }}>
+                                    <Box sx={{ color: card.color, opacity: 0.8 }}>
                                         {card.icon}
                                     </Box>
                                 </Box>
