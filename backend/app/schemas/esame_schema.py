@@ -31,9 +31,21 @@ class EsameCreate(EsameBase):
 
 
 class EsameUpdate(BaseModel):
+    studente_id: Optional[str] = None
+    modulo_id: Optional[str] = None
     data: Optional[datetime] = None
     voto: Optional[int] = Field(None, ge=0, le=30)
     note: Optional[str] = Field(None, max_length=500)
+    
+    @field_validator('studente_id', 'modulo_id')
+    @classmethod
+    def validate_objectid_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        from app.utils.objectid_utils import validate_objectid
+        if not validate_objectid(v):
+            raise ValueError(f'Invalid ObjectId format: {v}')
+        return v
     
     @field_validator('voto')
     @classmethod

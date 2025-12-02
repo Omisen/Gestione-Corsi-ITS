@@ -13,6 +13,7 @@ import ModuleForm from './pages/Modules/ModuleForm';
 import ExamsList from './pages/Exams/ExamsList';
 import ExamForm from './pages/Exams/ExamForm';
 import Dashboard from './pages/Dashboard/Dashboard';
+import Statistics from './pages/Statistics/Statistics';
 
 function App() {
   return (
@@ -38,6 +39,9 @@ function App() {
             <Route path="exams" element={<ExamsList />} />
             <Route path="exams/new" element={<ExamForm />} />
             <Route path="exams/:id/edit" element={<ExamForm />} />
+
+            {/* Statistics Route */}
+            <Route path="statistics" element={<Statistics />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
