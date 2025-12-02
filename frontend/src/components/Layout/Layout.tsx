@@ -23,6 +23,7 @@ import {
     People as PeopleIcon,
     School as SchoolIcon,
     Assignment as AssignmentIcon,
+    BarChart as BarChartIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -43,6 +44,7 @@ const Layout = () => {
         { text: 'Studenti', icon: <PeopleIcon />, path: '/students' },
         { text: 'Moduli', icon: <SchoolIcon />, path: '/modules' },
         { text: 'Esami', icon: <AssignmentIcon />, path: '/exams' },
+        { text: 'Statistiche', icon: <BarChartIcon />, path: '/statistics' },
     ];
 
     const drawer = (

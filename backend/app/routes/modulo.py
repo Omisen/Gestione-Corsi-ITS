@@ -30,8 +30,6 @@ def seed_moduli():
         if modulo_repository.codice_exists(m['codice']):
             continue
         
-        m['nome'] = modulo_repository.get_next_nome_sequence()
-        
         result = modulo_repository.insert_one(m)
         moduli_salvati.append(m['nome'])
     
@@ -97,8 +95,6 @@ def creazione_modulo():
             return jsonify({"Errore": "Codice già esistente"}), 400
         
         modulo_data = modulo_create.model_dump()
-        
-        modulo_data['nome'] = modulo_repository.get_next_nome_sequence()
         
         result = modulo_repository.insert_one(modulo_data)
         

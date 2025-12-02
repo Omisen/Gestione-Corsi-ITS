@@ -201,7 +201,43 @@ def update_esame(esame_id: str):
     try:
         esame_update = EsameUpdate(**data)
         
-        update_data = esame_update.model_dump(exclude_none=True)
+        update_data = {}
+        
+        if esame_update.studente_id is not None:
+            studente = studente_repository.find_by_id(esame_update.studente_id)
+            if not studente:
+                return jsonify({"Errore": "Studente non trovato"}), 404
+            
+            old_studente_id = str(esame['studente'])
+            new_studente_id = esame_update.studente_id
+            
+            if old_studente_id != new_studente_id:
+                studente_repository.remove_esame(old_studente_id, esame_id)
+                studente_repository.add_esame(new_studente_id, esame_id)
+            
+            update_data['studente'] = str_to_objectid(new_studente_id)
+        
+        if esame_update.modulo_id is not None:
+            modulo = modulo_repository.find_by_id(esame_update.modulo_id)
+            if not modulo:
+                return jsonify({"Errore": "Modulo non trovato"}), 404
+            
+            old_modulo_id = str(esame['modulo'])
+            new_modulo_id = esame_update.modulo_id
+            
+            if old_modulo_id != new_modulo_id:
+                studente_id = esame_update.studente_id if esame_update.studente_id else str(esame['studente'])
+                studente_repository.add_modulo(studente_id, new_modulo_id)
+            
+            update_data['modulo'] = str_to_objectid(new_modulo_id)
+        
+        if esame_update.data is not None:
+            update_data['data'] = esame_update.data
+        if esame_update.voto is not None:
+            update_data['voto'] = esame_update.voto
+        if esame_update.note is not None:
+            update_data['note'] = esame_update.note
+        
         if update_data:
             esame_repository.update_one(esame_id, update_data)
         
