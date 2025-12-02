@@ -4,6 +4,7 @@ from app.utils.objectid_utils import PyObjectId
 
 
 class ModuloBase(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=100)
     codice: str = Field(..., min_length=1, max_length=50)
     totale_ore: int = Field(..., gt=0)
     descrizione: Optional[str] = Field(None, max_length=500)
@@ -14,14 +15,14 @@ class ModuloCreate(ModuloBase):
 
 
 class ModuloUpdate(BaseModel):
+    nome: Optional[str] = Field(None, min_length=1, max_length=100)
     codice: Optional[str] = Field(None, min_length=1, max_length=50)
     totale_ore: Optional[int] = Field(None, gt=0)
     descrizione: Optional[str] = Field(None, max_length=500)
 
 
 class ModuloInDB(ModuloBase):
-    id: PyObjectId = Field(alias="_id")
-    nome: int 
+    id: PyObjectId = Field(alias="_id") 
     
     model_config = ConfigDict(
         populate_by_name=True,
