@@ -1,17 +1,12 @@
+from app.repositories import studente_repository
+
 class InscrizioneService:
     
     @staticmethod
-    def inscrivi_studente_in_modulo(studente, modulo):
-        if modulo not in studente.moduli:
-            studente.moduli.append(modulo)
-            studente.save()
-            return True
-        return False
+    def inscrivi_studente_in_modulo(studente_id: str, modulo_id: str) -> bool:
+        return studente_repository.add_modulo(studente_id, modulo_id)
+    
     
     @staticmethod
-    def rimuovi_studente_da_modulo(studente, modulo):
-        if modulo in studente.moduli:
-            studente.moduli.remove(modulo)
-            studente.save()
-            return True
-        return False
+    def rimuovi_studente_da_modulo(studente_id: str, modulo_id: str) -> bool:
+        return studente_repository.remove_modulo(studente_id, modulo_id)
