@@ -65,6 +65,9 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Configuration files with sensitive data
+config.py
+
 # Scrapy stuff:
 .scrapy
 
